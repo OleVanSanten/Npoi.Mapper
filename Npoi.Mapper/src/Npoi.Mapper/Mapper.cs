@@ -13,6 +13,12 @@ using NPOI.XSSF.UserModel;
 
 namespace Npoi.Mapper
 {
+    public enum ColumnStyleSources
+    {
+        Type, 
+        ExistingStyle
+    }
+
     /// <summary>
     /// Map object properties with Excel columns for importing from and exporting to file.
     /// </summary>
@@ -101,6 +107,11 @@ namespace Npoi.Mapper
         /// If <see cref="HasHeader"/> is true (by default), this represents the header row index.
         /// </summary>
         public int FirstRowIndex { get; set; } = -1;
+
+        /// <summary>
+        /// Whether to apply (new) default styles or existing styles. Default is true.
+        /// </summary>
+        public ColumnStyleSources ColumnStyleSource { get; set; } = ColumnStyleSources.Type;
 
         #endregion
 
@@ -878,7 +889,19 @@ namespace Npoi.Mapper
                 ? HasHeader ? firstRowIndex + 1 : firstRowIndex
                 : sheet.GetRow(sheet.LastRowNum) != null ? sheet.LastRowNum + 1 : sheet.LastRowNum;
 
-            MapHelper.EnsureDefaultFormats(columns, TypeFormats);
+            // Write a IColumnInfo.CustomFormat to each column that does not already have one
+            switch (ColumnStyleSource)
+            {
+                case ColumnStyleSources.Type:
+                    MapHelper.EnsureDefaultFormatsByType(columns, TypeFormats);
+                    break;
+                case ColumnStyleSources.ExistingStyle:
+                    MapHelper.EnsureDefaultFormatsByExistingStyle(columns, sheet, firstRow);
+                    MapHelper.EnsureDefaultFormatsByType(columns, TypeFormats); // A column might not have any existing style
+                    break;
+                default:
+                    throw new NotImplementedException($"Unsupported ColumnStyleSource value {ColumnStyleSource}");
+            }
 
             foreach (var o in objectArray)
             {

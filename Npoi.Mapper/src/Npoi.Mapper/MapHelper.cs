@@ -490,7 +490,7 @@ namespace Npoi.Mapper
 
         #endregion
 
-        internal static void EnsureDefaultFormats(IEnumerable<IColumnInfo> columns, Dictionary<Type, string> defaultFormats)
+        internal static void EnsureDefaultFormatsByType(IEnumerable<IColumnInfo> columns, Dictionary<Type, string> defaultFormats)
         {
             //
             // For now, only take care DateTime.
@@ -513,6 +513,21 @@ namespace Npoi.Mapper
                     {
                         attributes.CustomFormat = defaultFormats[type];
                     }
+                }
+            }
+        }
+
+        internal static void EnsureDefaultFormatsByExistingStyle(IEnumerable<IColumnInfo> columns, ISheet sheet, IRow firstRow)
+        {
+            foreach (var column in columns)
+            {
+                var attributes = column.Attribute;
+                if (column.DataFormat == null && attributes.CustomFormat == null)
+                {
+                    var firstColumnCell = firstRow.GetCell(column.Attribute.Index, MissingCellPolicy.RETURN_BLANK_AS_NULL);
+
+                    if (firstColumnCell != null)
+                        attributes.CustomFormat = firstColumnCell.CellStyle.GetDataFormatString();
                 }
             }
         }
