@@ -13,7 +13,7 @@ using NPOI.XSSF.UserModel;
 
 namespace Npoi.Mapper
 {
-    public enum ColumnStyleSources
+    public enum StyleSources
     {
         Type, 
         ExistingStyle
@@ -111,7 +111,7 @@ namespace Npoi.Mapper
         /// <summary>
         /// Whether to apply (new) default styles or existing styles. Default is true.
         /// </summary>
-        public ColumnStyleSources ColumnStyleSource { get; set; } = ColumnStyleSources.Type;
+        public StyleSources DefaultStyleSource { get; set; } = StyleSources.Type;
 
         #endregion
 
@@ -890,17 +890,17 @@ namespace Npoi.Mapper
                 : sheet.GetRow(sheet.LastRowNum) != null ? sheet.LastRowNum + 1 : sheet.LastRowNum;
 
             // Write a IColumnInfo.CustomFormat to each column that does not already have one
-            switch (ColumnStyleSource)
+            switch (DefaultStyleSource)
             {
-                case ColumnStyleSources.Type:
+                case StyleSources.Type:
                     MapHelper.EnsureDefaultFormatsByType(columns, TypeFormats);
                     break;
-                case ColumnStyleSources.ExistingStyle:
+                case StyleSources.ExistingStyle:
                     MapHelper.EnsureDefaultFormatsByExistingStyle(columns, sheet, firstRow);
                     MapHelper.EnsureDefaultFormatsByType(columns, TypeFormats); // A column might not have any existing style
                     break;
                 default:
-                    throw new NotImplementedException($"Unsupported ColumnStyleSource value {ColumnStyleSource}");
+                    throw new NotImplementedException($"Unsupported ColumnStyleSource value {DefaultStyleSource}");
             }
 
             foreach (var o in objectArray)
